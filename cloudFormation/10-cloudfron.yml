@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'frontend con s3 + cloudfront'
+
+Resources:
+  encuestaS3FrontendAngular:
+    Type: AWS::S3::Bucket
+  
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: s3PolicyFrontend
+        Version: 2012-10-17
+        Statement:
+          - Sid: readForCloudFront
+            Effect: Allow
+            Principal:
+              CanonicalUser: 
+                !GetAtt myCloudfrontoriginaccessidentity.S3CanonicalUserId
+            Action: "s3:GetObject"
+            Resource: !Sub
+                        - "arn:aws:s3:::${myS3FrontendAngular}/*"
+                        - { myS3FrontendAngular: !Ref encuestaS3FrontendAngular }
+      Bucket: !Ref encuestaS3FrontendAngular
+  
+  myCloudfrontoriginaccessidentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref encuestaS3FrontendAngular
+
+  myDistributionFrontendAngular:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: 
+      - myCloudfrontoriginaccessidentity
+      - encuestaS3FrontendAngular
+      - BucketPolicy
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt encuestaS3FrontendAngular.DomainName
+            Id: s3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub
+                                      - "origin-access-identity/cloudfront/${myCloudfrontoriginaccessidentity}"
+                                      - { myCloudfrontoriginaccessidentity: !Ref myCloudfrontoriginaccessidentity }
+        PriceClass: PriceClass_100
+        Enabled: true
+        DefaultRootObject: "/index.html"
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: "/index.html"
+        HttpVersion: http2
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - HEAD
+            - DELETE
+            - GET
+            - OPTIONS
+            - POST
+            - PUT
+            - PATCH
+          Compress: true
+          TargetOriginId: s3Origin
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: "redirect-to-https"
+
+Outputs:
+  myDistributionEncuestaAngular:
+    Description: DNS de cloudfront angular
+    Value: !GetAtt myDistributionFrontendAngular.DomainName

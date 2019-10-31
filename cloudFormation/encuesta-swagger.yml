@@ -1,0 +1,703 @@
+swagger: "2.0"
+info:
+  version: "API ToS"
+  title: "RestApi Encuesta"
+host: "1quo4pmwi0.execute-api.us-east-1.amazonaws.com"
+basePath: "/prod"
+schemes:
+- "https"
+paths:
+  /api/security/change-password:
+    post:
+      operationId: "updatePasswordUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "UpdatePasswordDTO"
+        required: true
+        schema:
+          $ref: "#/definitions/UpdatePasswordDTO"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/security/change-password"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/security/first-reset-password:
+    post:
+      operationId: "renewPasswordFirstUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "RenewPasswordFirstDTO"
+        required: true
+        schema:
+          $ref: "#/definitions/RenewPasswordFirstDTO"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/security/first-reset-password"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/security/login:
+    post:
+      operationId: "loginUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "LoginDTO"
+        required: true
+        schema:
+          $ref: "#/definitions/LoginDTO"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/security/login"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/security/refresh-token:
+    post:
+      operationId: "refreshTokenUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "BasicAccessDTO"
+        required: true
+        schema:
+          $ref: "#/definitions/BasicAccessDTO"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/security/refresh-token"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/security/signout:
+    post:
+      operationId: "signOutUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "BasicAccessDTO"
+        required: true
+        schema:
+          $ref: "#/definitions/BasicAccessDTO"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/security/signout"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/security/token:
+    post:
+      operationId: "verificarTokenUsingPOST"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/security/token"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/votantes/eliminar/{id}:
+    delete:
+      operationId: "eliminarUsingDELETE"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "401 response"
+        204:
+          description: "204 response"
+        403:
+          description: "403 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/votantes/eliminar/{id}"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestParameters:
+          integration.request.path.id: "method.request.path.id"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "DELETE"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/votantes/listar:
+    get:
+      operationId: "VotanteUsingGET"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/ArrayOfVotante"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/votantes/listar"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "GET"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/votantes/modificar:
+    put:
+      operationId: "modificarUsingPUT"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Votante"
+        required: true
+        schema:
+          $ref: "#/definitions/Votante"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/votantes/modificar"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "PUT"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /api/votantes/registrar:
+    post:
+      operationId: "registrarUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Votante"
+        required: true
+        schema:
+          $ref: "#/definitions/Votante"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/RespuestaApi"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        201:
+          description: "201 response"
+        401:
+          description: "401 response"
+        403:
+          description: "403 response"
+        404:
+          description: "404 response"
+      x-amazon-apigateway-integration:
+        uri: "https://api.martincarrillo.site/api/votantes/registrar"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "http_proxy"
+    options:
+      consumes:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+definitions:
+  RespuestaApi:
+    type: "object"
+    properties:
+      accessToken:
+        type: "string"
+      body:
+        type: "object"
+        properties: {}
+      idToken:
+        type: "string"
+      refreshToken:
+        type: "string"
+      sessionId:
+        type: "string"
+      status:
+        type: "string"
+  ArrayOfVotante:
+    type: "array"
+    items:
+      $ref: "#/definitions/Votante"
+  BasicAccessDTO:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+  UpdatePasswordDTO:
+    type: "object"
+    properties:
+      newPassword:
+        type: "string"
+      oldPassword:
+        type: "string"
+      token:
+        type: "string"
+      username:
+        type: "string"
+      verificationCode:
+        type: "string"
+  Votante:
+    type: "object"
+    properties:
+      apellidos:
+        type: "string"
+      edad:
+        type: "integer"
+        format: "int32"
+      id:
+        type: "integer"
+        format: "int32"
+      lenguaje:
+        type: "integer"
+        format: "int32"
+      lugarTrabajo:
+        type: "string"
+      nombre:
+        type: "string"
+      profesion:
+        type: "string"
+  LoginDTO:
+    type: "object"
+    properties:
+      password:
+        type: "string"
+      username:
+        type: "string"
+  RenewPasswordFirstDTO:
+    type: "object"
+    properties:
+      password:
+        type: "string"
+      session:
+        type: "string"
+      username:
+        type: "string"

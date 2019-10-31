@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Instacias para las redes publicas y privadas"
+
+Parameters:
+  tipoDeInstancia:
+    Type: String
+    Default: db.t2.micro
+
+  motorBD:
+    Type: String
+    Default: postgres
+
+  motorVersionBD:
+      Type: String
+      Default: "10.1"
+
+  nameBD:
+    Type: String
+    Default: encuesta
+
+  usernameBD:
+    Type: String
+    Default: postgres
+  
+  passwordBD:
+    Type: String
+    NoEcho: true
+    Default: 12345678
+
+  puertoBD:
+    Type: String
+    Default: 5432
+
+Resources: 
+  subNetConfig:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: redes privadas
+      DBSubnetGroupName: dbPrivate
+      SubnetIds: 
+        - !ImportValue subNetAATEPrivada1
+        - !ImportValue subNetAATEPrivada2
+      Tags:
+      - Key: Name
+        Value: subNetConfig
+
+  bdAATE: 
+    Type: "AWS::RDS::DBInstance"
+    Properties: 
+      AllocatedStorage: 20
+      BackupRetentionPeriod: 0
+      CopyTagsToSnapshot: false
+      DBInstanceClass: !Ref tipoDeInstancia
+      DBName: !Ref nameBD
+      DBSubnetGroupName: !Ref subNetConfig
+      DeletionProtection: false
+      Engine: !Ref motorBD
+      EngineVersion: !Ref motorVersionBD
+      MasterUserPassword: !Ref passwordBD
+      MasterUsername: !Ref usernameBD
+      MultiAZ: false
+      Port: !Ref puertoBD
+      StorageType: gp2
+      VPCSecurityGroups: 
+        - !ImportValue Firewall-BaseDatosAATE
+    DeletionPolicy: Delete
+      
+Outputs:
+  bdEndpointName:
+    Description: endoint de la base de datos postgres
+    Value:
+      !GetAtt bdAATE.Endpoint.Address

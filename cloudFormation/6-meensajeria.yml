@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "recursos queue y sns"
+
+Resources: 
+  myQueueAATE:
+    Type: AWS::SQS::Queue
+    DependsOn: myQueueAATEFallas
+    Properties:
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt myQueueAATEFallas.Arn
+        maxReceiveCount: 5
+      Tags:
+      - Key: Name
+        Value: myQueueAATE
+
+  myQueueAATEFallas:
+    Type: AWS::SQS::Queue
+    Properties:
+      Tags:
+      - Key: Name
+        Value: myQueueAATEFallas
+
+  mySNSAATETopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: !GetAtt myQueueAATE.Arn
+          Protocol: sqs
+      TopicName: topicoAATE
+      Tags:
+      - Key: Name
+        Value: mySNSAATETopic
+
+Outputs:
+  arnTopicoAATESNS:
+    Description: "ARN de SNS que envia datos a SQS"
+    Value: !Ref mySNSAATETopic
+    Export: 
+      Name: arnTopicoAATESNS
+
+  myQueueAATEName:
+    Description: "nombre de la cola funcional"
+    Value: !GetAtt myQueueAATE.QueueName
+    Export: 
+      Name: myQueueAATEName

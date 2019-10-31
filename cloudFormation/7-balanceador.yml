@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Balanceador"
+
+Resources: 
+  balanceadorAATE:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: balanceadorAATE
+      Subnets:
+        - !ImportValue subNetAATEPublica1
+        - !ImportValue subNetAATEPublica2
+      SecurityGroups:
+        - !ImportValue Firewall-BalanceadorAATE
+      Tags:
+      - Key: Name
+        Value: balanceadorAATE
+
+  defaultTargetGroupAATE:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: defaultAATE
+      Port: 80
+      Protocol: HTTP
+      VpcId: !ImportValue idVPCAATE
+      Tags:
+      - Key: Name
+        Value: defaultAATE
+  
+  listenerHttpBalancerAATE:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref defaultTargetGroupAATE
+      LoadBalancerArn: !Ref balanceadorAATE
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  URLBalanceadorAATE:
+    Description: DNS para acceder al balanceador
+    Value: !Join [ "", [ "http://", !GetAtt balanceadorAATE.DNSName ] ]
+
+  arnListenerHttpBalancerAATE:
+    Description: ARN del listener HTTP del balanceador
+    Value: !Ref listenerHttpBalancerAATE
+    Export:
+      Name: arnListenerHttpMyBalancerAATE
+
+

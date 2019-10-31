@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Firewall de la red"
+
+
+Resources: 
+  sgPublicoAATE:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Firewall protege mis EC2 publicos
+      VpcId: 
+        !ImportValue "idVPCAATE"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: sgPublicoAATE
+
+  sgPrivadoAATE:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Firewall protege mis EC2 privados
+      VpcId: 
+        !ImportValue "idVPCAATE"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        SourceSecurityGroupId: !Ref sgPublicoAATE
+      Tags:
+      - Key: Name
+        Value: sgPrivadoAATE
+
+  sgBaseDatosAATE:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: permite coneion solo EC2 publicos y privados
+      VpcId: 
+        !ImportValue "idVPCAATE"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        CidrIp: !ImportValue bloqueVPC-AATE
+      SecurityGroupEgress:
+        IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: sgBaseDatosAATE
+
+  sgBastionAATE:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: seguridad para ec2 Bastion
+      VpcId: 
+        !ImportValue "idVPCAATE"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: sgBastionAATE
+
+  sgBalanceadorAATE:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Expone puerto 80 balanceador
+      VpcId: 
+        !ImportValue "idVPCAATE"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: sgBalanceadorAATE
+
+  sgApiECSAATE:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite trafico del balanceador hacia target groups ecs (viceversa)"
+      VpcId: 
+        !ImportValue "idVPCAATE"
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: sgApiECSAATE
+
+  ruleInSSHToTargetsECSAATE:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: "IN RULE - permite trafico del balanceador a targets groups ecs"
+      GroupId: !Ref sgApiECSAATE
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+
+  ruleInBalanceadorToTargetsECSAATE:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: "IN RULE - permite trafico del balanceador a targets groups ecs"
+      GroupId: !Ref sgApiECSAATE
+      IpProtocol: tcp
+      FromPort: 31000
+      ToPort: 61000
+      SourceSecurityGroupId: !Ref sgBalanceadorAATE
+
+  ruleInECSToMysqlRDSAATE:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: "IN RULE - permite trafico desde los contenedores hacia postgres"
+      GroupId: !Ref sgBaseDatosAATE
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref sgApiECSAATE
+
+Outputs:
+  sgPublicoAATE:
+    Description: Firewall para EC2 publicos
+    Value: !Ref sgPublicoAATE
+    Export:
+      Name: Firewall-Publico
+
+  sgPrivadoAATE:
+    Description: Firewall para EC2 privados
+    Value: !Ref sgPrivadoAATE
+    Export:
+      Name: Firewall-Privado
+
+  sgBaseDatosAATE:
+    Description: Firewall base de datos
+    Value: !GetAtt sgBaseDatosAATE.GroupId
+    Export:
+      Name: Firewall-BaseDatosAATE
+
+  sgBastionAATE:
+    Description: Security Group de ec2 bastion
+    Value: !GetAtt sgBastionAATE.GroupId
+    Export:
+      Name: Firewall-BastionAATE
+
+  sgBalanceadorAATE:
+    Description: Security Group de ec2 bastion
+    Value: !GetAtt sgBalanceadorAATE.GroupId
+    Export:
+      Name: Firewall-BalanceadorAATE

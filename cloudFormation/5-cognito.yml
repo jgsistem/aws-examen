@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Configuracion Pool de usuario"
+
+Resources: 
+  userPoolAATE:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        InviteMessageTemplate:
+          EmailMessage: "Se ha creado su usuario {username} y su contrase?a temporal es {####}"
+          EmailSubject: "Alta Cuenta AWS"
+        UnusedAccountValidityDays: 7
+      AutoVerifiedAttributes: 
+      - email
+      EmailVerificationMessage: "Su c?digo de verificaci?n es {####}."
+      EmailVerificationSubject: "Su c?digo de verificaci?n"
+      Policies: 
+        PasswordPolicy:
+          MinimumLength: 6
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      UserPoolName: userPoolAATE
+
+  clientAngularAATE:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: angularAATE
+      ExplicitAuthFlows:
+      - ADMIN_NO_SRP_AUTH
+      GenerateSecret: false
+      ReadAttributes:
+      - email
+      RefreshTokenValidity: 2
+      UserPoolId: !Ref userPoolAATE
+      WriteAttributes: 
+      - email
+
+  userAdmin:
+    Type: AWS::Cognito::UserPoolUser
+    Properties:
+      DesiredDeliveryMediums:
+      - EMAIL
+      Username: admin
+      UserAttributes:
+      - Name: email
+        Value: martincarrillodurand@gmail.com
+      UserPoolId: !Ref userPoolAATE
+
+  adminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Grupo de usuarios administrador
+      GroupName: ADMIN
+      Precedence: 5
+      UserPoolId: !Ref userPoolAATE
+
+  adminUserToAdminGroup:
+    Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    DependsOn: 
+    - userAdmin
+    - adminGroup
+    Properties:
+      GroupName: ADMIN
+      Username: admin
+      UserPoolId: !Ref userPoolAATE
+
+Outputs:
+  cognitoIdUserPool:
+    Description: ID del grupo Cognito
+    Value: !Ref userPoolAATE
+    Export:
+      Name: cognito-pool-id-AATE
+
+  clientIdAngular:
+    Description: ID del cliente oauth angula
+    Value: !Ref clientAngularAATE
+    Export:
+      Name: cognito-client-angular-AATE
+

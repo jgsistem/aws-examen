@@ -1,0 +1,501 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "ECS + Docker"
+
+Parameters:
+  sgApiECS:
+    Type: String
+    Description: firewall para instancias EC2 del cluster ECS
+    Default: sg-02e69aa05a7a8e0a3
+
+  keyNamePair:
+    Type: String
+    Description: keypair para conexion SSH a instancias EC2 del cluster ECS
+
+  arnListenerHTTPBalancer:
+    Type: String
+    Description: listener HTTP del balanceador
+    Default: arn:aws:elasticloadbalancing:us-east-1:867776895895:listener/app/balanceadorAATE/a2c37886b557154f/5b6e1d3750dde2d1
+    
+
+  containerPort:
+    Type: Number
+    Description: puerto de los contenedores (en este curso es comun todos los puertos)
+    Default: 8080
+
+  userPoolId:
+    Type: String
+    Description: user pool de cognito
+    Default: us-east-1_SDM1bfMo2
+
+  clientId:
+    Type: String
+    Description: id cliente app en cognito
+    Default: 1krmldepth91fvehh01s43qf1h
+
+  urlBD:
+    Type: String
+    Description: URL base datos RDS
+    Default: db1h1nxgo9frcu5.ccnu5c8nxxgq.us-east-1.rds.amazonaws.com
+
+  database:
+    Type: String
+    Description: nombre de la base de datos
+    Default: encuesta
+
+  portBD:
+    Type: String
+    Description: puerto base de datos
+    Default: 5432
+
+  usernameBD:
+    Type: String
+    Description: usuario conexion a base de datos
+    Default: postgres
+
+  passwordBD:
+    Type: String
+    Description: password conexion a base de datos
+    Default: 12345678
+
+  capacidadDeseadaECS:
+    Type: String
+    Description: cantidad de EC2 para el cluster ECS
+    Default: 3
+
+  tipoDeInstancia:
+    Type: String
+    Description: Ingresar el tipo de instancia EC2
+    Default: t2.micro
+
+  arnTopicoSNS:
+    Type: String
+    Description: arn topico sns
+    Default: arn:aws:sns:us-east-1:867776895895:topicoAATE
+
+  # urlBalanceadorApiEncuesta:
+  #   Type: String
+  #   Description: ulr formada por el balanceador y el api encuesta
+  #   Default: arn:aws:sns:us-east-1:867776895895:topicoAATE
+
+Mappings: 
+  AWSRegionToAMI: 
+    us-east-1: 
+      AMIID: ami-eca289fb
+    us-east-2: 
+      AMIID: ami-446f3521
+
+Resources: 
+  myClusterECS:
+    Type: AWS::ECS::Cluster
+
+  ecsAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !ImportValue subNetAATEPublica1
+        - !ImportValue subNetAATEPublica2
+      LaunchConfigurationName: !Ref containerInstances
+      MinSize: 0
+      MaxSize: 4
+      DesiredCapacity: !Ref capacidadDeseadaECS
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: "PT15M"
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+
+  containerInstances:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMIID]
+      SecurityGroups: 
+        - !Ref sgApiECS
+      InstanceType: !Ref tipoDeInstancia
+      IamInstanceProfile: !Ref instanceProfileEC2
+      KeyName: !Ref keyNamePair
+      UserData: 
+        Fn::Base64:
+          !Join
+            - ''
+            - - "#!/bin/bash -xe\n"
+              - "echo ECS_CLUSTER="
+              - !Ref myClusterECS
+              - " >> /etc/ecs/ecs.config\n"
+              - "yum install -y aws-cfn-bootstrap\n"
+              - "/opt/aws/bin/cfn-signal -e $? "
+              - "         --stack "
+              - !Ref 'AWS::StackName'
+              - "         --resource ecsAutoScalingGroup "
+              - "         --region "
+              - !Ref 'AWS::Region'
+              - "\n"
+
+  instanceProfileEC2:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref ecsRoleEC2
+
+  ecsRoleEC2:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service:
+                - ec2.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ecs-service
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ecs:CreateCluster"
+                  - "ecs:DeregisterContainerInstance"
+                  - "ecs:DiscoverPollEndpoint"
+                  - "ecs:Poll"
+                  - "ecs:RegisterContainerInstance"
+                  - "ecs:StartTelemetrySession"
+                  - "ecs:Submit*"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+
+  ecsServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service:
+                - ecs.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ecs-service
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "elasticloadbalancing:DeregisterInstancesFromLoadBalancer"
+                  - "elasticloadbalancing:DeregisterTargets"
+                  - "elasticloadbalancing:Describe*"
+                  - "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
+                  - "elasticloadbalancing:RegisterTargets"
+                  - "ec2:Describe*"
+                  - "ec2:AuthorizeSecurityGroupIngress"
+                Resource: "*"
+
+  apiSeguridadRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+
+  apiGenericRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+
+  apiSeguridadPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: apiSeguridadPolicy
+      Roles:
+        - !Ref apiSeguridadRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "cognito-idp:AdminInitiateAuth"
+              - "cognito-idp:ConfirmForgotPassword"
+              - "cognito-idp:GlobalSignOut"
+              - "cognito-idp:AdminRespondToAuthChallenge"
+              - "cognito-idp:InitiateAuth"
+              - "cognito-idp:AdminGetUser"
+            Resource: !Join
+                        - ''
+                        - - "arn:aws:cognito-idp:"
+                          - !Ref "AWS::Region"
+                          - ":*:userpool/*"
+
+  apiGenericPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: apiGenericPolicy
+      Roles:
+        - !Ref apiGenericRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sns:Publish"
+              - "sns:ListTopics"
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - "sqs:DeleteMessage"
+              - "sqs:ListQueues"
+              - "sqs:GetQueueUrl"
+              - "sqs:SendMessage"
+            Resource: "*"
+
+  cloudwatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join
+                      - '-'
+                      - - logsGroup
+                        - !Ref AWS::StackName
+      RetentionInDays: 1
+
+  taskApiSeguridad:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      TaskRoleArn: !Ref apiSeguridadRole
+      Family: !Join
+                - ''
+                - - !Ref AWS::StackName
+                  - "-apiSeguridad"
+      ContainerDefinitions:
+        - Name: apiSeguridad
+          Essential: true
+          Image: dockermarvic/apieseguridad:latest
+          MemoryReservation: 374
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref cloudwatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: apiSeguridad
+          PortMappings:
+            - ContainerPort: !Ref containerPort
+              HostPort: 0
+          Environment:
+            - Name: userPoolId
+              Value: !Ref userPoolId
+            - Name: clientId
+              Value: !Ref clientId
+            - Name: demo
+              Value: hola
+
+  taskApiEncuesta:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      TaskRoleArn: !Ref apiGenericRole
+      Family: !Join
+                - ''
+                - - !Ref AWS::StackName
+                  - "-apiEncuesta"
+      ContainerDefinitions:
+        - Name: apiEncuesta
+          Essential: true
+          Image: dockermarvic/apiencuesta:latest
+          MemoryReservation: 374
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref cloudwatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: apiEncuesta
+          PortMappings:
+            - ContainerPort: !Ref containerPort
+              HostPort: 0
+          Environment:
+            - Name: userPoolId
+              Value: !Ref userPoolId
+            - Name: host
+              Value: !Ref urlBD
+            - Name: database
+              Value: !Ref database
+            - Name: username
+              Value: !Ref usernameBD
+            - Name: password
+              Value: !Ref passwordBD
+            - Name: port
+              Value: !Ref portBD
+            # - Name: hostapi
+            #   Value: !Ref urlBalanceadorApiEncuesta
+
+  apiSeguridadService:
+    Type: AWS::ECS::Service
+    DependsOn: ecsAutoScalingGroup
+    Properties:
+      ServiceName: srvApiSeguridad
+      Cluster: !Ref myClusterECS
+      DesiredCount: 1
+      HealthCheckGracePeriodSeconds: 30
+      LoadBalancers:
+        - ContainerName: apiSeguridad
+          ContainerPort: !Ref containerPort
+          TargetGroupArn: !Ref tgApiSeguridad
+      Role: !Ref ecsServiceRole
+      TaskDefinition: !Ref taskApiSeguridad
+
+  apiEncuestaService:
+    Type: AWS::ECS::Service
+    DependsOn: ecsAutoScalingGroup
+    Properties:
+      ServiceName: srvApiEncuesta
+      Cluster: !Ref myClusterECS
+      DesiredCount: 1
+      HealthCheckGracePeriodSeconds: 30
+      LoadBalancers:
+        - ContainerName: apiEncuesta
+          ContainerPort: !Ref containerPort
+          TargetGroupArn: !Ref tgApiEncuesta
+      Role: !Ref ecsServiceRole
+      TaskDefinition: !Ref taskApiEncuesta
+
+  tgApiSeguridad:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /status/verificar
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200-204
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      Name: tgApiSeguridad
+      Port: !Ref containerPort
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: !ImportValue idVPCAATE
+
+  tgApiEncuesta:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /status/verificar
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200-204
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Name: tgApiEncuesta
+      Port: !Ref containerPort
+      Protocol: HTTP
+      UnhealthyThresholdCount: 4
+      VpcId: !ImportValue idVPCAATE
+
+  ecsAlbListenerRuleApiSeguridad:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn: tgApiSeguridad
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref tgApiSeguridad
+      Conditions:
+        - Field: path-pattern
+          Values: 
+            - "/api/security/*"
+      ListenerArn: !Ref arnListenerHTTPBalancer
+      Priority: 1
+
+  ecsAlbListenerRuleApiEncuesta:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn: tgApiEncuesta
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref tgApiEncuesta
+      Conditions:
+        - Field: path-pattern
+          Values: 
+            - "/api/votantes/*"
+      ListenerArn: !Ref arnListenerHTTPBalancer
+      Priority: 2
+
+  myAutoscalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: service-autoscaling
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "application-autoscaling:*"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:PutMetricAlarm"
+                  - "ecs:DescribeServices"
+                  - "ecs:UpdateService"
+                Resource: "*"
+
+  myScalingTargetApiSeguridad:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: apiSeguridadService
+    Properties:
+      MaxCapacity: 3
+      MinCapacity: 1
+      ResourceId: !Join
+                    - ''
+                    - - service/
+                      - !Ref myClusterECS
+                      - /srvApiSeguridad
+      RoleARN: !GetAtt myAutoscalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  myScalingPolicyApiSeguridad:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: AStepPolicyApiSeguridad
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref myScalingTargetApiSeguridad
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 85
+        ScaleInCooldown: 120
+        ScaleOutCooldown: 120
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageMemoryUtilization
+
+
+
+
+
+
+
+              
+
+   

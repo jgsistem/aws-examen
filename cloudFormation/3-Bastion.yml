@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Bastion para acceder a EC2 Privado"
+
+Parameters:
+  TipoInstancia:
+    Type: String
+    Default: t2.micro
+
+  IdImagen:
+    Type: String
+    Default: ami-0080e4c5bc078760e
+
+  ClaveSSH:
+    Type: AWS::EC2::KeyPair::KeyName
+  
+Resources: 
+  ec2BastionAATE:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref IdImagen
+      KeyName: !Ref ClaveSSH
+      InstanceType: !Ref TipoInstancia
+      SubnetId: !ImportValue subNetAATEPublica1
+      SecurityGroupIds:
+      - !ImportValue Firewall-BastionAATE
+      Tags:
+      - Key: Name
+        Value: ec2BastionAATE
+
+Outputs:
+  dnsPublicEC2:
+    Description: dns publico para ec2
+    Value: !GetAtt ec2BastionAATE.PublicDnsName
+    Export:
+      Name: infraestructura-ec2BastionAATE

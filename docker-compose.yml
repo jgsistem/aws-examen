@@ -1,0 +1,76 @@
+version: '3.4'
+
+services:
+
+  postgres_server:
+    #Ignorado cuando se usa en swarm mode (swamr usa imagenes pre construidas)
+    #o el tag image
+    #build: postgres/
+    image: dockermarvic/postgres_encuesta:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=encuesta
+    volumes: 
+      - my-data:/var/lib/postgres/
+    ports:
+      - "5432:5432"
+    #Ignorado cuando se usa en swarm mode (usar restart_policy)
+    restart: on-failure
+    networks:
+      - backend
+
+  api_encuesta:
+    build: ApiEncuesta/
+    image: dockermarvic/apiencuesta:latest
+    environment: 
+      - JAVA_OPTS=""
+      - userPoolId=xxxxxxxxxxxxxxxx
+      - host=postgres_server
+      - database=encuesta
+      - username=postgres
+      - password=123
+      - AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxxxx
+      - AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxx
+    depends_on:
+      - postgres_server
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    #Sobreescribiendo el entrypoint del dockerfile
+    entrypoint: dockerize -wait tcp://postgres_server:5432 -timeout 10m java -jar /workspace/app.jar
+    networks:
+      - backend
+
+  api_seguridad:
+    build: EncuestaSeguridad/
+    image: dockermarvic/apieseguridad:latest
+    environment: 
+      - userPoolId=xxxxxxxxxxxxxxxx
+      - clientId=xxxxxxxxxxxxxxxxxxxxxx
+      - AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxxxxxx
+      - AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - demo=hola
+    ports:
+      - "8080"
+    restart: on-failure
+    networks:
+      - backend
+
+  proxy:
+    #build: nginx-proxy/
+    image: dockermarvic/nginx_test:latest
+    ports:
+      - "80:80"
+    depends_on: 
+      - api_encuesta
+      - api_seguridad
+    restart: always
+    networks:
+      - backend
+
+volumes:
+  my-data:
+
+networks:
+  backend: 

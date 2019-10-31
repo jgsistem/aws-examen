@@ -1,0 +1,37 @@
+<nav class="sidebar" [ngClass]="{sidebarPushRight: isActive, collapsed: collapsed}">
+    <div class="list-group">
+        <a routerLink="/encuesta-votar" [routerLinkActive]="['router-link-active']" class="list-group-item">
+            <i class="fa fa-fw fa-dashboard"></i>&nbsp;
+            <span>Encuesta Votar</span>
+        </a>
+        <a *ngIf="isAdmin" routerLink="/encuesta-listar" [routerLinkActive]="['router-link-active']" class="list-group-item">
+            <i class="fa fa-fw fa-bar-chart-o"></i>&nbsp;
+            <span>Encuesta Listar</span>
+        </a>
+
+        <div class="header-fields">
+            <a (click)="rltAndLtr()" class="list-group-item">
+                <span><i class="fa fa-arrows-h"></i>&nbsp; RTL/LTR</span>
+            </a>
+            <div class="nested-menu">
+                <a class="list-group-item" (click)="addExpandClass('profile')">
+                    <span><i class="fa fa-user"></i>&nbsp; Usuario</span>
+                </a>
+                <li class="nested" [class.expand]="showMenu === 'profile'">
+                    <ul class="submenu">
+                        <li>
+                            <a [routerLink]="['/login']" (click)="onLoggedout()">
+                                <span><i class="fa fa-fw fa-power-off"></i> Salir</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </div>
+        </div>
+    </div>
+    <div class="toggle-button" [ngClass]="{collapsed: collapsed}" (click)="toggleCollapsed()">
+        <i class="fa fa-fw fa-angle-double-{{collapsed?'right':'left'}}"></i>&nbsp;
+        <span>Collapse Sidebar</span>
+    </div>
+</nav>
+

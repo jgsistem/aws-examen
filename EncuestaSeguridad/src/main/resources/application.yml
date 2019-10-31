@@ -1,0 +1,13 @@
+server:
+  port: 8080
+  
+awsregion: us-east-1
+
+demo: ${demo}
+
+spring:
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true

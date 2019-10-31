@@ -1,0 +1,220 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Creando red aws AATE"
+
+Parameters:
+  bloqueCidr:
+    Type: String
+    Description: Bloque cidr VPC AATE
+    Default: 10.0.0.0/16
+
+  bloqueIPpublica1:
+    Type: String
+    Description: Bloque cidr sub net publica1 AATE
+    Default: 10.0.1.0/24
+
+  bloqueIPpublica2:
+    Type: String
+    Description: Bloque cidr sub net publica2 AATE
+    Default: 10.0.2.0/24
+
+  bloqueIPprivada1:
+    Type: String
+    Description: Bloque cidr sub net privada1 AATE
+    Default: 10.0.100.0/24
+
+  bloqueIPprivada2:
+    Type: String
+    Description: Bloque cidr sub net privada1 AATE
+    Default: 10.0.200.0/24
+
+  azPublica1:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: "us-east-1a"
+
+  azPublica2:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: "us-east-1b"
+    
+  azPrivada1:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: "us-east-1a"
+
+  azPrivada2:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: "us-east-1b"
+
+Resources: 
+  vpcAATE:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref bloqueCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: vpcAATE
+
+  internetGatewayAATE:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: internetGatewayAATE
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn: internetGatewayAATE
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      InternetGatewayId:
+        Ref: internetGatewayAATE
+
+  subNetAATEPublica1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      CidrBlock: !Ref bloqueIPpublica1
+      AvailabilityZone: !Ref azPublica1
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: subNetAATEPublica1
+
+  subNetAATEPublica2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      CidrBlock: !Ref bloqueIPpublica2
+      AvailabilityZone: !Ref azPublica2
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: subNetAATEPublica2
+
+  subNetAATEPrivada1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      CidrBlock: !Ref bloqueIPprivada1
+      AvailabilityZone: !Ref azPrivada1
+      Tags:
+      - Key: Name
+        Value: subNetAATEPrivada1
+
+  subNetAATEPrivada2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      CidrBlock: !Ref bloqueIPprivada2
+      AvailabilityZone: !Ref azPrivada2
+      Tags:
+      - Key: Name
+        Value: subNetAATEPrivada2
+
+  routeTableAATEPublico:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      Tags:
+      - Key: Name
+        Value: routeTableAATEPublico
+    
+  routeTableAATEPrivado:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: vpcAATE
+      Tags:
+      - Key: Name
+        Value: routeTableAATEPrivado
+
+  salidaInternetRouteTablePublico:
+    Type: AWS::EC2::Route
+    DependsOn: internetGatewayAATE
+    Properties:
+      RouteTableId:
+        Ref: routeTableAATEPublico
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: internetGatewayAATE
+
+  asociacionRtbPublica1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: 
+        Ref: subNetAATEPublica1
+      RouteTableId:
+        Ref: routeTableAATEPublico
+
+  asociacionRtbPublica2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: 
+        Ref: subNetAATEPublica2
+      RouteTableId:
+        Ref: routeTableAATEPublico
+
+  asociacionRtbPrivada1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: subNetAATEPrivada1
+      RouteTableId:
+        Ref: routeTableAATEPrivado
+
+  asociacionRtbPrivada2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: subNetAATEPrivada2
+      RouteTableId:
+        Ref: routeTableAATEPrivado
+
+Outputs:
+  subNetAATEPublica1:
+    Description: "Id red publica 1"
+    Value:
+      !Ref subNetAATEPublica1
+    Export:
+      Name: "subNetAATEPublica1"
+  
+  subNetAATEPublica2:
+    Description: "Id red publica 2"
+    Value:
+      !Ref subNetAATEPublica2
+    Export:
+      Name: "subNetAATEPublica2"
+
+  subNetAATEPrivada1:
+    Description: "Id red privada 1"
+    Value:
+      !Ref subNetAATEPrivada1
+    Export:
+      Name: "subNetAATEPrivada1"
+
+  subNetAATEPrivada2:
+    Description: "Id red privada 2"
+    Value:
+      !Ref subNetAATEPrivada2
+    Export:
+      Name: "subNetAATEPrivada2"
+    
+  bloqueIPVPC:
+    Description: "este es el segmento de red"
+    Value:
+      !GetAtt vpcAATE.CidrBlock
+    Export:
+      Name: "bloqueVPC-AATE" 
+
+  idVPCAATE:
+    Description: "id de la vpv para usar en otros recursos"
+    Value:
+      !Ref vpcAATE
+    Export:
+      Name: "idVPCAATE"

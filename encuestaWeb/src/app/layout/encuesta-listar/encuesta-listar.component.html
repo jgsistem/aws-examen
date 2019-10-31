@@ -1,0 +1,129 @@
+<section class="content">
+    <div class="container-fluid">
+        <!-- Basic Examples -->
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><strong>Listado de Encuesta</strong></h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <table id="tbl-ListaRoles" class="table table-bordered" style="width:100%">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Id</th>
+                                                <th>Nombre</th>
+                                                <th>Apellidos</th>
+                                                <th>Edad</th>
+                                                <th>Profesión</th>
+                                                <th>Lugar de Trabajo</th>
+                                                <th>Voto</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let item of encuestas | slice: (page-1) * pageSize : (page-1) * pageSize + pageSize">
+                                                <td>{{ item.id }}</td>
+                                                <td>{{ item.nombre }}</td>
+                                                <td>{{ item.apellidos }}</td>
+                                                <td>{{ item.edad }}</td>
+                                                <td>{{ item.profesion }}</td>
+                                                <td>{{ item.lugarTrabajo }}</td>
+                                                <td>{{ item.lenguaje === 1 ? 'JAVA' : 'C#' }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-link" (click)="open(content, item)"><i class="fa fa-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-link" (click)="elimnar(item)"><i class="fa fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div>
+                                        <ngb-pagination [(page)]="page" [pageSize]="pageSize" [collectionSize]="encuestas.length"aria-label="Default pagination"></ngb-pagination>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- #END# Basic Examples -->
+        <ng-template #content let-c="close" let-d="dismiss">
+            <div class="modal-header">
+                <h4 class="modal-title">Encuesta</h4>
+                <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="form" (submit)="modificar()" novalidate>
+                    <label>Nombre</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <input type="text" maxlength="50" class="form-control" [ngClass]="{'is-valid': form.get('nombre').valid, 'is-invalid': form.get('nombre').invalid }" formControlName="nombre" placeholder="Nombre" name="nombre">
+                                    <div class="invalid-feedback">
+                                        Ingrese el nombre.
+                                    </div>
+                                </div>
+                            </div>
+                            <label>Apellidos</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <input type="text" maxlength="100" class="form-control" [ngClass]="{'is-valid': form.get('apellidos').valid, 'is-invalid': form.get('apellidos').invalid }" formControlName="apellidos" placeholder="Apellidos" name="apellidos">
+                                    <div class="invalid-feedback">
+                                        Ingrese los apellidos.
+                                    </div>
+                                </div>
+                            </div>
+                            <label>Edad</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <input type="number" maxlength="2" class class="form-control" [ngClass]="{'is-valid': form.get('edad').valid, 'is-invalid': form.get('edad').invalid }" formControlName="edad" placeholder="Edad" name="edad">
+                                    <div class="invalid-feedback">
+                                        Ingrese la edad.
+                                    </div>
+                                </div>
+                            </div>
+                            <label>Profesión</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <input type="text" maxlength="100" class="form-control" [ngClass]="{'is-valid': form.get('profesion').valid, 'is-invalid': form.get('profesion').invalid }" formControlName="profesion" placeholder="Profesión" name="profesion">
+                                    <div class="invalid-feedback">
+                                        Ingrese la Profesión.
+                                    </div>
+                                </div>
+                            </div>
+                            <label>Lugar de Trabajo</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <input type="text" maxlength="100" class="form-control" [ngClass]="{'is-valid': form.get('lugarTrabajo').valid, 'is-invalid': form.get('lugarTrabajo').invalid }" formControlName="lugarTrabajo" placeholder="Lugar de Trabajo" name="lugarTrabajo">
+                                    <div class="invalid-feedback">
+                                        Ingrese el lugar de trabajo.
+                                    </div>
+                                </div>
+                            </div>
+                            <label>Lenguaje</label>
+                            <div class="form-group">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline1" formControlName="lenguaje" name="lenguaje" [value]="1" class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline1">Java</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline2" formControlName="lenguaje" name="lenguaje" [value]="2" class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline2">C#</label>
+                                </div>
+                            </div>
+                    <button type="submit" class="btn btn-success">
+                            <i class="fa fa-save"></i>Grabar</button>
+                    <button type="button" class="btn btn-danger waves-effect" (click)="c('Close click')">Cancel</button>
+                </form>
+            </div>
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="c('Close click')">Close</button>
+            </div> -->
+        </ng-template>
+    </div>
+</section>

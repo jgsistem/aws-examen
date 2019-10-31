@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "ApiGateway para balanceador app"
+
+Parameters:
+  bucketApiGateway:
+    Type: String
+    Description: bucket s3 donde se aloja el archivo body del apigateway
+
+Resources: 
+  encuestaServiciosApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties: 
+      Name: encuestaServiciosApi
+      Description: API usada  requests
+      FailOnWarnings: true
+      BodyS3Location:
+        Bucket: !Ref bucketApiGateway
+        Key: encuesta-swagger.yml
+  
+  deploymentEncServiciosApi:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref encuestaServiciosApi
+      Description: My deployment
+
+  prodStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: prod
+      Description: Prod Stage
+      RestApiId: !Ref encuestaServiciosApi
+      DeploymentId: !Ref deploymentEncServiciosApi
+      Variables: 
+        Stack: prod
+
+Outputs:
+  encuestaServiciosApiURL:
+    Description: OutDNS API EncuestaServiciosputDescription
+    Value: !Join
+            - ''
+            - - "https://"
+              - !Ref encuestaServiciosApi
+              - ".execute-api."
+              - !Ref "AWS::Region"
+              - ".amazonaws.com"

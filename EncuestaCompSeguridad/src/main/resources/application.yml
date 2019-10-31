@@ -1,0 +1,11 @@
+# userPoolId: ${userPoolId} 
+# https://cognito-idp.REGION-AWS.amazonaws.com/POOL-ID/.well-known/jwks.json
+userPoolId: ${userPoolId}
+awsregion: us-east-1
+
+spring:
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
